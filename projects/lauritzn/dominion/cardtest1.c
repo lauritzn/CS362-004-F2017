@@ -67,7 +67,7 @@ int countCardNum(int numToCount, int array[], int arraySize)
 int numFromDeckToHand(struct gameState *stateBefore, struct gameState *stateAfter, int player)
 {
 
-	printf("Checking cards from deck to hand\n");
+	printf("Checking cards from deck to hand");
 	int deckSizeBefore = stateBefore->deckCount[player];
 	int deckCtBefore[deckSizeBefore];
 
