@@ -1,0 +1,169 @@
+Bug Report #1
+Title: isGameOver() fails to check highest-numbered supply card counts   
+Class: Bug Affecting Game Outcome
+
+Date: 11/12/2017          
+Reported By: Nina Lauritzen  
+Email: lauritzn@oregonstate.edu     
+
+
+Product:   dominion.c           Version: assignment-2
+Platform: Linux (flip3)         Version: 3.10.0-514.26.2.el7.x86_64
+URL: https://github.com/Hapachino/CS362-004-F2017/tree/brownfie-assignment-2   
+
+Is it reproducible: Yes 
+
+Description
+===========
+A unit test of the isGameOver() function fails when one of the three empty supply piles is treasure_map, card 26.  The isGameOver() function should return true because with 3 empty piles the rules of Dominion specify that the game should be over.  However, the test fails because the isGameOver() function returns false.
+
+Steps to Produce/Reproduce
+--------------------------
+A validly initialized struct gameState "state" must be created in which exactly 3 supply card piles are empty.  Two can be any supply piles. The third will be treasure_map, such that state.supplyCount[treasure_map] = 0.  The province card pile must be non-empty.  All other supply piles must be non-empty or else not in play (count set to -1). Call the isGameOver() function for this gameState, by using "isGameOver(&state)". Check the value returned.
+
+Expected Results
+----------------
+Expected output was that the game should count as over.  Function should return 1.  
+
+Actual Results
+--------------
+Observed output was that the game does not count as over.  Function returns 0.  
+
+Other Information
+-----------------
+This bug is caused by an incorrect loop condition at line 402.  The for-loop that loops through the supply counts to check for supply counts equal to 0 stops at the value i = 24 (salvager).  For this reason, supply counts for sea_hag (25) and treasure_map (26) are never checked. 
+
+This bug is significant because it can affect game outcome.  If the game continues past the point at which it should end, this could cause a player to win who by the rules of Dominion should have lost earlier, and vice versa.
+
+
+Bug Report #2
+Title: smithyCard() causes incorrect number of cards to be drawn
+Class: Minor Bug
+
+Date: 11/12/2017          
+Reported By: Nina Lauritzen  
+Email: lauritzn@oregonstate.edu     
+
+
+Product:   dominion.c           Version: assignment-2
+Platform: Linux (flip3)         Version: 3.10.0-514.26.2.el7.x86_64
+URL: https://github.com/Hapachino/CS362-004-F2017/tree/brownfie-assignment-2       
+
+Is it reproducible: Yes 
+
+
+Description
+===========
+
+Unit and random tests of smithyCard() fail when there are 3 or more cards available to be drawn.  The tests that fail are those that check for the correct count of cards being removed from the deck and added to the hand.  The number of cards removed from the deck and added to the hand by the function is too few.
+
+Steps to Produce/Reproduce
+--------------------------
+
+A validly initialized struct gameState "state" must be created in which state.deckCount[currentPlayer] > 2.  The smithy card should be placed in the player's hand such that state.hand[currentPlayer][handPos] = smithy.  A copy of the initial gameState "origState" should be created. The smithyCard() function is then called as follows: smithyCard(currentPlayer, &state, handPos).  The resulting gameState can be checked for correctness: state.handCount[currentPlayer] == origState.handCount[currentPlayer]+2 (accounting for the smithy card itself being discarded) and state.deckCount[currentPlayer] == origState.deckCount[currentPlayer]-3.
+
+Expected Results
+----------------
+
+Expected output per the rules of Dominion was that 3 cards should be drawn; count of cards removed from deck and added to hand should be 3
+
+
+Actual Results
+--------------
+
+Observed output was that 2 cards are drawn; count of cards removed from deck and added to hand was 2
+
+
+Other Information
+-----------------
+
+This bug is caused by an incorrect loop condition in the smithyCard() function at line 1310.  The for-loop that loops to draw a card iterates only twice rather than 3 times.  This could be fixed by increasing the upper bound of the loop condition so that it repeats as long as i < 4.  It could also be fixed by starting the loop counter at i = 0.  
+
+This bug is a minor one, since it does not cause game crashes or data corruption.  However, drawing too few cards could place a player at an unfair disadvantage, with the possible result of a changed, incorrect outcome to the game as a whole.
+
+
+Bug Report #3
+Title: Amount of treasure drawn by adventurerCard() is too few
+Class: Minor Bug
+
+Date: 11/12/2017          
+Reported By: Nina Lauritzen  
+Email: lauritzn@oregonstate.edu     
+
+
+Product:   dominion.c           Version: assignment-2
+Platform: Linux (flip3)         Version: 3.10.0-514.26.2.el7.x86_64
+URL: https://github.com/Hapachino/CS362-004-F2017/tree/brownfie-assignment-2        
+
+Is it reproducible: Yes 
+
+Description
+===========
+
+Unit and random tests of adventurerCard() that check for the correct number of treasure cards added to the hand fail.  The number of treasure cards added to the hand by the function is too few.
+
+
+Steps to Produce/Reproduce
+--------------------------
+
+A validly initialized struct gameState "state" must be created in which state.deckCount[currentPlayer] > 1 and at least two cards in the deck are treasure cards in any mixture (gold, silver, copper).  The adventurer card should be placed in the player's hand such that state.hand[currentPlayer][handPos] = adventurer.  A copy of the initial gameState "origState" should be created. Call the cardEffect() function as follows: cardEffect(adventurer, 0, 0, 0, &state, handPos, 0).  Check the resulting gameState for the correct count of treasure cards.  This can be done by looping through state.hand[currentPlayer] and origState.hand[currentPlayer] to tally the count of treasure cards.  The count after should be 2 greater than the count before, but instead it will be observed that the count after is only one greater.
+
+Expected Results
+----------------
+
+Expected output was that 2 treasure cards should have been added to the player's hand.  For example, in one random test performed, a total count of 13 treasure cards was expected.
+
+Actual Results
+--------------
+
+Observed output was that 2 treasure cards were not added.  For example, in the random test performed that expected a count of 13 treasure cards, only 12 treasure cards were counted.  The number of treasure cards added is one too few.
+
+Other Information
+-----------------
+
+This bug is caused by an incorrect loop condition at line 1268.  The while-loop that loops to draw up to 2 treasure cards exits when only one card has been drawn.  This could be fixed by increasing the bound of the loop condition to loop while drawnTreasure < 2.  
+
+This bug is a minor one, since it does not cause game crashes or data corruption.  However, drawing too few treasure cards could place a player at an unfair disadvantage, with the possible result of a changed, incorrect outcome to the game as a whole.
+
+
+Bug Report #4
+Title: Action count increase is incorrect when village card is played
+Class: Minor Bug
+
+Date: 11/12/2017          
+Reported By: Nina Lauritzen  
+Email: lauritzn@oregonstate.edu     
+
+
+Product:  dominion.c            Version: assignment-2
+Platform: Linux (flip3)         Version: 3.10.0-514.26.2.el7.x86_64
+URL: https://github.com/Hapachino/CS362-004-F2017/tree/brownfie-assignment-2        
+
+Is it reproducible: Yes 
+
+Description
+===========
+
+Unit and random tests of villageCard() that check for the correct number of actions fail.  The number of actions added by the villageCard() function is greater than it should be.
+
+Steps to Produce/Reproduce
+--------------------------
+
+A validly initialized struct gameState "state" must be created. The village card should be placed in the player's hand such that state.hand[currentPlayer][handPos] = village.  A copy of the initial gameState "origState" should be created. Call the cardEffect() function as follows: cardEffect(village, 0, 0, 0, &state, handPos, 0).  Check the resulting gameState for the correct action count to test whether state.numActions == origState.numActions+2. 
+
+Expected Results
+----------------
+
+Expected output was that state.numActions == origState.numActions+2
+
+Actual Results
+--------------
+
+Observed output was that state.numActions != origState.numActions+2 
+
+Other Information
+-----------------
+
+This bug is located in line 1343, which increments state->numActions by 3. This line should increment state->numActions by 2.
+
+This bug is a minor one, since it does not cause game crashes or data corruption.  However, having more actions than permitted by the game rules could place a player at an unfair advantage, with the possible result of a changed, incorrect outcome to the game as a whole.
